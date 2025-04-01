@@ -1,0 +1,77 @@
+defaults:
+  - _self_
+  - embedding_sizes
+
+seed: 1 #Consistent with the seed for the LEAP-Expert training.
+
+device: "cuda"
+
+data:
+  label_file: "/path/to/your/label_file.xlsx" #Contains the Slide_ID and a label columns.
+  image_folder: "/path/to/the/single_cell/patch/folder"
+  label_column: "AML_APL" 
+  tile_number: 500 #Consistent with the tile_number for the LEAP-Expert training.
+  augment: false
+  folds: 5
+  n_classes: 2
+  cohort: "cohort_name" 
+
+model_to_ensemble:
+  VGG19:
+    weights_path: "/path/to/your/first/model" # Exclude the fold and .pth extension here (i.e. Leukemia/models/2024-11-18_11-24-51_LEAP_EXPERT instead of Leukemia/models/2024-11-18_11-24-51_LEAP_EXPERT_{fold}.pth)
+    extractor:
+      _target_: models.extractor.VGG19FeatureExtractor
+    head:
+      _target_: models.owkin.abmil.ABMIL
+      in_features: ${EMBEDDING_SIZES.VGG19}
+      out_features: 1
+      d_model_attention: ${EMBEDDING_SIZES.VGG19}
+      temperature: 1.0
+      tiles_mlp_hidden: [1024 , 512]
+      mlp_hidden: [512, 246]
+      mlp_dropout: [0.25, 0.1]
+      metadata_cols: 0
+      mlp_activation:
+        _target_: torch.nn.ReLU
+
+  ResNet50:
+    weights_path: "/path/to/your/second/model"
+    extractor:
+      _target_: models.extractor.ResNet50FeatureExtractor
+    head:
+      _target_: models.owkin.abmil.ABMIL
+      in_features: ${EMBEDDING_SIZES.ResNet50}
+      out_features: 1
+      d_model_attention: ${EMBEDDING_SIZES.ResNet50}
+      temperature: 1.0
+      tiles_mlp_hidden: [1024 , 512]
+      mlp_hidden: [512, 246]
+      mlp_dropout: [0.25, 0.1]
+      metadata_cols: 0
+      mlp_activation:
+        _target_: torch.nn.ReLU
+
+  DenseNet121:
+    weights_path: "/path/to/your/third/model"
+    extractor:
+      _target_: models.extractor.DenseNet121FeatureExtractor
+
+    head:
+      _target_: models.owkin.abmil.ABMIL
+      in_features: ${EMBEDDING_SIZES.DenseNet121}
+      out_features: 1
+      d_model_attention: ${EMBEDDING_SIZES.DenseNet121}
+      temperature: 1.0
+      tiles_mlp_hidden: [768 , 512]
+      mlp_hidden: [512, 246]
+      mlp_dropout: [0.25, 0.1]
+      metadata_cols: 0
+      mlp_activation:
+        _target_: torch.nn.ReLU
+
+experiment_recap:
+  fold_metricfile: "/folder/to/save/metrics"
+  prediction_folder: "/folder/to/save/predictions"
+
+logger:
+  experiment_id : "${now:%Y-%m-%d_%H-%M-%S}_LEAP_ENSEMBLE"

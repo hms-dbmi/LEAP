@@ -1,0 +1,70 @@
+defaults:
+  - _self_
+  - embedding_sizes
+  
+seed: 1
+
+data:
+  discovery_cohort: "cohort_name" #the cohort used for model training
+  cohorts: ["discovery_cohort_name","val_cohort_name1","val_cohort_name2"]
+  label_files: ["/path/to/your/label_file.xlsx (discovery_cohort)","/path/to/your/label_file.xlsx (val_cohort_1)","/path/to/your/label_file.xlsx (val_cohort_2)"]
+  image_folders: ["/path/to/the/single_cell/patch/folder (discovery_cohort)","/path/to/the/single_cell/patch/folder (val_cohort_1)","/path/to/the/single_cell/patch/folder (val_cohort_2)"]
+  label_column: "AML_APL" #as it appear in your .xlsx file
+  tile_number: 500
+  augment: false
+  folds: 5
+  n_classes: 2
+  batch_size: 4
+  complete_batch_size : 32
+  num_workers: 16
+
+train:
+  device: "cuda"
+  epochs: 7
+  patience: 3
+  early_stopping: true
+  early_stopping_formula: "(balanced_acc + 2 * auc_pr + 2 * roc_auc + weighted_f1) / 7" 
+  performant_model_thresholds:
+    balanced_acc: 0.9
+    auc_pr: 0.9
+    weighted_f1: 0.9
+    roc_auc: 0.9
+
+optimizer:
+  _target_: torch.optim.Adam
+  lr: 0.00001
+
+criterion:
+  _target_: torch.nn.BCEWithLogitsLoss
+  pos_weight: null
+
+
+# LEAP Configuration
+extractor:
+  _target_: models.extractor.DenseNet121FeatureExtractor
+
+head:
+  _target_: models.head.abmil.ABMIL
+  in_features: ${EMBEDDING_SIZES.DenseNet121}
+  out_features: 1
+  d_model_attention: ${EMBEDDING_SIZES.DenseNet121}
+  temperature: 1.0
+  tiles_mlp_hidden: [768 , 512]
+  mlp_hidden: [512, 246]
+  mlp_dropout: [0.25, 0.1]
+  metadata_cols: 0
+  mlp_activation:
+    _target_: torch.nn.ReLU
+
+
+checkpoints:
+  save_dir: "/folder/to/save/checkpoints"
+
+experiment_recap:
+  fold_metricfile: "/folder/to/save/metrics"
+  prediction_folder: "/folder/to/save/predictions"
+
+logger:
+  _target_: utils.logger.TensorboardLogger
+  log_dir: "/folder/to/save/logs"
+  experiment_id: "${now:%Y-%m-%d_%H-%M-%S}_LEAP_EXPERT_DENSENET_ABMIL"

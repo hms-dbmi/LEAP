@@ -1,0 +1,4 @@
+EMBEDDING_SIZES:
+  VGG19: 4096
+  ResNet50: 2048
+  DenseNet121: 1024

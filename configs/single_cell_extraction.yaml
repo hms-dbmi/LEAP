@@ -1,0 +1,22 @@
+seed: 1
+
+process:
+  input_dir: "/path/to/folder/with/whole/slide/images"
+  output_dir: "/path/to/store/extracted/cells"
+  file_extension: ".ndpi"
+  roi_size: 4096
+  width_fraction: 0.5
+  height_fraction: 0.6667
+  max_cells_per_thumbnail: 200
+  max_total_cells: 2500
+  segmentation_params:
+    gaussian_kernel: [5, 5]
+    threshold_val: 127
+    min_size: 2000
+    morph_kernel_size: 5
+    morph_open_iterations: 2
+    erode_iterations: 2
+    distance_mask_size: 5
+    h_max_value: 1
+    dilate_iterations: 3
+    h_max_thresh_multiplier: 0.3
