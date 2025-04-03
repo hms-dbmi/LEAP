@@ -123,6 +123,8 @@ def update_experiment_recap_csv(model_name, cohort_metrics, save_path):
     
     df = pd.DataFrame(data)
 
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+
     try:
         existing_df = pd.read_csv(save_path)
         updated_df = pd.concat([existing_df, df], ignore_index=True)
