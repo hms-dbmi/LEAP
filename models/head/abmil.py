@@ -5,9 +5,9 @@ Taken from https://github.com/owkin/HistoSSLscaling
 from typing import List, Optional
 import torch
 from torch import nn
-from models.owkin.utils.attention import GatedAttention
-from models.owkin.utils.mlp import MLP
-from models.owkin.utils.tile_layers import TilesMLP
+from models.head.utils.attention import GatedAttention
+from models.head.utils.mlp import MLP
+from models.head.utils.tile_layers import TilesMLP
 
 
 class ABMIL(nn.Module):
