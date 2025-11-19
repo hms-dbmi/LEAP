@@ -3,7 +3,7 @@
 
 ### A Generalizable AI Framework for Predicting Clinically Actionable Subtypes, Molecular Alterations, and Prognosis in Patients with Acute Myeloid Leukemia – A Multi-Center Validation Study 
 
-Guillaume Larghero^, Chia-Jen Liu^, Junhan Zhao^, Xavier Cheng-Hong Tsai^, Yao-Chung Liu, Christian Engel, Ting-Wan Kao, Vignesh Shanmugan, William Yuan, Hung-Ruei Chen, Ying-Chung Hong, Chun-Kuang Tsai, Chieh-Lin Teng, Yuan-Bin Yu, Hsin-An Hou, Hwei-Fang Tien, Wen-Chien Chou, Joan How, Jean M. Connors, Maximilian Stahl, Kun-Hsing Yu<sup>+</sup>. 
+Guillaume Larghero^, Chia-Jen Liu^, Junhan Zhao^, Xavier Cheng-Hong Tsai^, Yao-Chung Liu, Christian Engel, Ting-Wan Kao, Vignesh Shanmugan, William Yuan, Hung-Ruei Chen, Ying-Chung Hong, Chun-Kuang Tsai, Chieh-Lin Teng, Yuan-Bin Yu, Hsin-An Hou, Hwei-Fang Tien, Wen-Chien Chou, Joan How, Jean M. Connors, Maximilian Stahl, Kun-Hsing Yu<sup>*</sup>. 
 
 *Lead Contact: Kun-Hsing Yu, M.D., Ph.D.*
 
