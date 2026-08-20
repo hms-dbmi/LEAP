@@ -1,33 +1,23 @@
 # LEAP — Leukemia End-to-End Analysis Platform
 
-LEAP recognises acute promyelocytic leukemia (APL) from bone marrow aspirate smear whole-slide
-images, and extends the same architecture to other acute myeloid leukemia labels and to overall
-survival. It is a weakly supervised model: the only supervision is one label per slide, and the
-model learns for itself which cells on the smear carry the signal. This repository contains the
-model and the code to train it, to aggregate the trained Experts into the LEAP score, and to fit
-the survival models on top of them.
+[![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=flat&logo=PyTorch&logoColor=white)](https://pytorch.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Architecture
+### Single-cell AI for Acute Promyelocytic Leukemia Recognition: Multicenter Validation and a Randomized Clinician-AI Collaboration Study
 
-A slide is represented as a bag of single-cell patches. Each patch passes through an
-ImageNet-pretrained convolutional feature extractor whose early stages stay frozen and whose later
-stages train with the rest of the network. A patch-wise projection maps those features into the
-attention space, gated attention pooling collapses the bag into one slide vector by a learned
-weighted average, and a small MLP turns that vector into a slide-level logit. Extractor and MIL
-head train together end to end, so the features adapt to the task instead of being fixed.
+Larghero G^, Liu CJ^, Zhao J^, Tsai XCH^, Liu YC, Engel C, Kao TW, Vremenko D, Ji-Xu A, Shanmugan V, Yuan W, Chen HR, Hong YC, Tsai CK, Teng CL, Yu YB, Jackson C, Zhang Y, Lin YH, Zhu M, Xiao Q, Schiefer AI, Munjal K, Chen D, Hou HA, Tien HF, Chou WC, How J, Connors JM, Stahl M, Yu KH+.
 
-Three Experts are trained independently on the same folds, one per backbone — VGG19, ResNet50 and
-DenseNet121 — and their predictions are combined into the LEAP score. Aggregation is fitted on
-out-of-fold predictions from the discovery cohort only and is cross-fitted, so no slide is scored
-by a combiner that was fitted using it, and external cohorts are scored without refitting.
+*^These authors contributed equally to this manuscript. +Correspondence to Kun-Hsing Yu.*
 
-Because pooling is a weighted average over cells, the attention weight on a cell is directly the
-contribution that cell made to the slide-level call, which is what makes the model interpretable
-at the cell level.
+*Lead Contact: Kun-Hsing Yu, M.D., Ph.D.*
 
-**Patch extraction is upstream and is not part of this repository.** LEAP begins where segmented
-single-cell patches already exist on disk. Cell detection, segmentation and cropping are done
-separately, and this repository neither performs nor stubs them.
+#### ABSTRACT
+
+Acute myeloid leukemia (AML) is one of the most prevalent and aggressive hematologic malignancies, requiring accurate and timely diagnosis to guide effective treatment. This is especially critical for subtypes such as acute promyelocytic leukemia (APL), which require immediate intervention with all-trans retinoic acid. To address this clinical need, we developed and validated LEAP, an artificial intelligence (AI) framework processing whole-slide images (WSIs) of routine bone marrow smears from newly diagnosed AML patients. We benchmarked LEAP against state-of-the-art pathology foundation models using a total of 864 WSIs across six institutions. LEAP achieved near-perfect accuracy in identifying APL cases (AUROC = 0.994 ± 0.009), significantly outperforming leading pathology foundation models and a hematology-specific model. In a prospective interventional crossover reader study (NCT07203885), LEAP improved the balanced accuracy of ten clinicians, each reviewing 102 slides, from 0.69 to 0.85. Moreover, a multimodal model combining LEAP-derived features with routine clinical variables stratified overall survival in all cohorts (concordance index 0.66–0.80; log-rank *P* < 10⁻⁵), and LEAP detected six clinically relevant genomic alterations within the discovery cohort using WSI only (AUROC 0.70–0.83).
+
+<p align="center">
+  <img src="docs/fig1.png" width="900" alt="Overview of the Leukemia End-to-end Analysis Platform (LEAP) and study cohorts">
+</p>
 
 ## Installation
 
@@ -127,7 +117,7 @@ Run it once per backbone, changing `extractor._target_`, `head.in_features`,
 `head.d_model_attention` and `experiment_name`. `in_features` must equal the extractor output
 dimension: 4096 for VGG19, 2048 for ResNet50, 1024 for DenseNet121.
 
-### 2. Aggregate the Experts into the LEAP score
+### 2. Aggregate the Experts
 
 ```
 python scripts/ensemble.py --config configs/ensemble.yaml
@@ -171,24 +161,6 @@ counted more than once.
 If a Cox model fails to converge, the Experts are ordering slides almost identically; set
 `cox_penalizer` to a small value such as 0.1.
 
-## Hardware and runtime
-
-A CUDA GPU is required in practice for steps 1 and 3; step 2 is CPU only. Every script falls back
-to CPU if CUDA is unavailable, which is useful for a smoke test on a handful of slides and
-impractical for a real run.
-
-Memory is driven by bag size, not by slide count. One bag of 500 patches is
-500 × 3 × 96 × 96 floats, about 55 MB, and the backbone sees all of them in one forward pass — so
-`data.batch_size` is bounded by GPU memory and is small. Use `data.accumulated_batch_size` to
-recover the effective batch size you want: with `batch_size: 4` and
-`accumulated_batch_size: 32`, gradients accumulate over eight forward passes before each step.
-Host memory is dominated by `data.num_workers` decompressing archives in parallel.
-
-For bit-reproducible runs, set `CUBLAS_WORKSPACE_CONFIG=:4096:8` before starting Python. Seeding
-enables PyTorch's deterministic algorithms, and deterministic cuBLAS matrix multiplication will
-otherwise raise an error. Keep `data.num_workers` fixed across runs you intend to reproduce: the
-per-epoch patch draw is seeded per worker, so changing the worker count changes which patches each
-slide sees.
 
 ## Data and model availability
 
