@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: "LEAP: Leukemia End-to-End Analysis Platform"
+abstract: >-
+  Weakly supervised recognition of acute promyelocytic leukemia and other acute myeloid
+  leukemia features from bone marrow aspirate smear whole-slide images, using attention-based
+  multiple-instance learning over single-cell patches.
+type: software
+license: MIT
+repository-code: "https://github.com/hms-dbmi/LEAP"
+version: "TODO: release version"
+date-released: "TODO: YYYY-MM-DD"
+authors:
+  - family-names: "TODO: family name"
+    given-names: "TODO: given names"
+    affiliation: "Harvard Medical School, Department of Biomedical Informatics"
+# TODO: add the remaining authors, and a `preferred-citation:` block pointing at the paper
+# once it has a DOI, so citing the software also cites the publication.
+keywords:
+  - computational pathology
+  - multiple instance learning
+  - acute myeloid leukemia
+  - acute promyelocytic leukemia
+  - bone marrow aspirate

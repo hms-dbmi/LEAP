@@ -1,0 +1,30 @@
+# Slides and derived arrays
+*.svs
+*.mrxs
+*.ndpi
+*.npy
+*.h5
+*.parquet
+
+# Model weights
+*.pt
+*.pth
+*.ckpt
+
+# Data, splits, outputs
+data/
+results/
+splits/
+outputs/
+checkpoints/
+logs/
+wandb/
+runs/
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+
+.DS_Store

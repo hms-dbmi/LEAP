@@ -1,0 +1,42 @@
+# Aggregate trained LEAP Experts into the LEAP score. CPU only.
+# python scripts/ensemble.py --config configs/ensemble.yaml
+
+seed:                        # seeds the bootstrap confidence intervals
+experiment_name:             # run identifier; blank generates a timestamp
+folds:                       # number of folds the Experts were trained with (integer)
+n_bootstrap:                 # bootstrap resamples for the AUROC CI (default: 2000)
+
+data:
+  label_column:              # the target these Experts predict; recorded in the outputs
+  discovery_cohort:          # cohort the Experts were trained on; combiners are fitted here
+  zero_shot_cohorts: []      # cohorts scored without refitting, e.g. [COHORT_B, COHORT_C]
+  predictions_dir:           # train_expert.py's output.results_dir
+
+# Expert name -> a substring of its experiment_name, used to find its prediction CSVs.
+# Any number of Experts is accepted; the published configuration uses three.
+experts:
+  # VGG19:
+  # ResNet50:
+  # DenseNet121:
+
+# Which Experts feed the mean and the stackers. Both read discovery AUROC only; single
+# Experts are always evaluated regardless.
+min_expert_auroc:            # absolute floor: drop an Expert below this discovery AUROC
+                             # (default: 0.5)
+expert_gate_margin:          # relative gate. A number drops any Expert more than that far
+                             # below the best discovery Expert. The string "auto" instead
+                             # drops only an Expert whose discovery 95% CI lies wholly below
+                             # the best Expert's. Blank keeps every Expert clearing the floor.
+                             # The value tags the run folder, so runs that differ only in the
+                             # gate never collide.
+
+headline:                    # which model to report:
+                             #   mean | lr | lr_convex   force that combiner
+                             #   best_expert             the best single Expert on discovery
+                             #   auto_all                argmax discovery AUROC over all models
+                             #   auto                    mean unless a stacker beats it by more
+                             #                           than one standard error on discovery
+                             # (default: mean)
+
+output:
+  results_dir:               # where the ensemble outputs and trackers are written

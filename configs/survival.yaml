@@ -1,0 +1,64 @@
+# Survival modelling on top of trained LEAP Experts.
+# python scripts/survival.py --config configs/survival.yaml
+
+seed:                        # random seed for the run and the discovery partition
+experiment_name:             # run identifier; blank generates a timestamp
+device:                      # cuda | cuda:0 | cpu; blank picks cuda when available
+folds:                       # number of cross-validation folds (integer)
+univariate_cox:              # true also fits one single-covariate Cox model per covariate
+
+data:
+  checkpoint_dir:            # train_expert.py's output.checkpoint_dir
+  patches_per_slide:         # patches sampled per slide; match the Experts' training value
+  time_column:               # follow-up time column in the label files
+  event_column:              # event indicator column, 1 = event observed, 0 = censored
+
+# Cohorts, DISCOVERY FIRST. Every column other than Slide_ID, time_column and event_column is
+# treated as a clinical covariate for the second-stage Cox model, so point these at a file
+# holding only the covariates you intend to adjust for.
+cohorts:
+  # COHORT_A:
+  #   label_file:
+  #   image_folder:
+  # COHORT_B:
+  #   label_file:
+  #   image_folder:
+
+# One entry per trained Expert. `stem` is a substring of its experiment_name; extractor and
+# head must match the architecture the checkpoint was trained with.
+experts:
+  # DenseNet121:
+  #   stem:
+  #   extractor:
+  #     _target_: leap.extractors.DenseNet121FeatureExtractor
+  #   head:
+  #     _target_: leap.nn.abmil.ABMIL
+  #     in_features: 1024
+  #     out_features: 1
+  #     d_model_attention: 1024
+  #     temperature: 1.0
+  #     tiles_mlp_hidden: [768, 512]
+  #     mlp_hidden: [512, 246]
+  #     mlp_dropout: [0.25, 0.1]
+  #     metadata_cols: 0
+  #     mlp_activation:
+  #       _target_: torch.nn.ReLU
+
+# The Cox-loss MLP fitted on each Expert's slide embeddings.
+survival_head:
+  hidden_dims:               # hidden sizes, e.g. [128, 64, 32]; the last one sets the
+                             # dimension of the embeddings written to embeddings.parquet
+  lr:                        # learning rate (default: 1e-4)
+  epochs:                    # maximum epochs (default: 100)
+  batch_size:                # slides per batch; also the Cox risk set (default: 64)
+  dropout:                   # dropout after each hidden layer (default: 0.2)
+  l2:                        # ridge penalty added to the loss (default: 1e-3)
+  patience:                  # epochs without loss improvement before stopping (default: 10)
+
+cox_penalizer:               # ridge penalty for the Cox models. Leave blank for none, which
+                             # is what the published models used. Set a small value (e.g. 0.1)
+                             # if a model fails to converge because Experts order slides
+                             # almost identically.
+
+output:
+  results_dir:               # where the survival tables are written

@@ -1,0 +1,20 @@
+name: leap
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pytorch>=2.4
+  - torchvision>=0.19
+  - numpy>=1.24
+  - pandas>=2.0,<3        # lifelines requires pandas<3; pin here so conda solves it once
+  - scipy>=1.10
+  - scikit-learn>=1.3
+  - pillow>=10.0
+  - openpyxl>=3.1         # pandas reads the label spreadsheets through this
+  - pyarrow>=14.0         # Parquet outputs; without it they fall back to CSV
+  - tqdm>=4.65
+  - tensorboard>=2.14
+  - pip
+  - pip:
+      - hydra-core>=1.3   # instantiates the extractor and head named by _target_
+      - lifelines>=0.27

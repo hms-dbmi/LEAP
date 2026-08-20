@@ -1,0 +1,64 @@
+# Train one LEAP Expert. Every value is blank: fill in the ones you need before running.
+# python scripts/train_expert.py --config configs/train_expert.yaml
+
+seed:                        # random seed for the run and for freezing the split
+experiment_name:             # run identifier used in filenames; blank generates a timestamp
+
+data:
+  label_file:                # spreadsheet, one row per slide (schema in the README)
+  image_folder:              # directory of <Slide_ID>.zip archives of single-cell patches
+  label_column:              # column holding the binary slide label, values 0 and 1
+  cohort:                    # name of this cohort; used in output paths
+  patches_per_slide:         # patches sampled per slide per bag (integer)
+  folds:                     # number of cross-validation folds (integer)
+  split_json:                # path to the frozen split; created from label_file if absent
+  base_seed:                 # seed for the per-slide deterministic patch draw at evaluation
+  augment:                   # true adds an augmented copy of every patch, doubling bag size
+  batch_size:                # bags per forward pass; bounded by GPU memory
+  accumulated_batch_size:    # effective batch size; must be a multiple of batch_size
+  num_workers:               # dataloader workers; keep fixed across runs you want to match
+
+  # Cohorts scored zero-shot by every fold model, with the same threshold. Leave empty for none.
+  external_cohorts: []
+  #  - name:
+  #    label_file:
+  #    image_folder:
+
+train:
+  device:                    # cuda | cuda:0 | cpu; blank picks cuda when available
+  epochs:                    # maximum epochs per fold (integer)
+  early_stopping:            # true stops when the validation score stops improving
+  patience:                  # epochs without improvement before stopping (integer)
+  grad_clip_norm:            # max gradient norm before each optimizer step (default: 1.0)
+  val_gate:                  # stop as soon as every validation metric reaches this value
+                             # (e.g. 0.92); blank disables the gate and uses patience alone
+
+optimizer:
+  _target_: torch.optim.Adam
+  lr:                        # learning rate
+
+extractor:
+  # one of leap.extractors.VGG19FeatureExtractor (4096-d)
+  #        leap.extractors.ResNet50FeatureExtractor (2048-d)
+  #        leap.extractors.DenseNet121FeatureExtractor (1024-d)
+  _target_:
+  freeze_until:              # number of leading backbone stages to freeze; blank uses the
+                             # per-backbone default (VGG19 28, ResNet50 6, DenseNet121 2)
+
+head:
+  _target_: leap.nn.abmil.ABMIL
+  in_features:               # must equal the extractor output dimension
+  out_features: 1            # 1 logit; binary classification
+  d_model_attention:         # attention dimension; commonly equal to in_features
+  temperature:               # attention softmax temperature (default: 1.0)
+  tiles_mlp_hidden:          # hidden sizes of the patch-wise projection, e.g. [768, 512]
+  mlp_hidden:                # hidden sizes of the final MLP, e.g. [512, 246]
+  mlp_dropout:               # dropout per final-MLP hidden layer, same length as mlp_hidden
+  metadata_cols: 0           # leading feature columns to skip; 0 for image-only features
+  mlp_activation:
+    _target_: torch.nn.ReLU
+
+output:
+  checkpoint_dir:            # where per-fold weights are written
+  results_dir:               # where predictions, metrics and the trackers are written
+  tensorboard_dir:           # TensorBoard log directory; blank disables logging
