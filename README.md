@@ -148,7 +148,7 @@ fold × slide, with every risk score and covariate).
 No data and no model weights are distributed with this repository. Trained checkpoints, slide and
 cell embeddings, cross-validation splits, and patient data are not included, and no slide or
 patient identifier appears anywhere in it. Those materials are available to reviewers via the
-Zenodo record [10.5281/zenodo.17728421](https://zenodo.org/records/22101055), or from the
+Zenodo record [10.5281/zenodo.22101055](https://zenodo.org/records/22101055), or from the
 corresponding author on reasonable request.
 
 ## Citation
