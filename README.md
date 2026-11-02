@@ -3,18 +3,18 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=flat&logo=PyTorch&logoColor=white)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-### Single-cell AI for Acute Promyelocytic Leukemia Recognition: Multicenter Validation and a Randomized Clinician-AI Collaboration Study
-
+### Single-cell AI for bone marrow smear assessment in acute myeloid leukemia: a randomized reader study of clinician–AI collaboration
+ 
 Larghero G^, Liu CJ^, Zhao J^, Tsai XCH^, Liu YC, Engel C, Kao TW, Vremenko D, Ji-Xu A, Shanmugan V, Yuan W, Chen HR, Hong YC, Tsai CK, Teng CL, Yu YB, Jackson C, Zhang Y, Lin YH, Zhu M, Xiao Q, Schiefer AI, Munjal K, Chen D, Hou HA, Tien HF, Chou WC, How J, Connors JM, Stahl M, Yu KH+.
-
+ 
 *^These authors contributed equally to this manuscript. +Correspondence to Kun-Hsing Yu.*
-
+ 
 *Lead Contact: Kun-Hsing Yu, M.D., Ph.D.*
-
+ 
 #### ABSTRACT
-
-Acute myeloid leukemia (AML) is one of the most prevalent and aggressive hematologic malignancies, requiring accurate and timely diagnosis to guide effective treatment. This is especially critical for subtypes such as acute promyelocytic leukemia (APL), which require immediate intervention with all-trans retinoic acid. To address this clinical need, we developed and validated LEAP, an artificial intelligence (AI) framework processing whole-slide images (WSIs) of routine bone marrow smears from newly diagnosed AML patients. We benchmarked LEAP against state-of-the-art pathology foundation models using a total of 864 WSIs across six institutions. LEAP achieved near-perfect accuracy in identifying APL cases (AUROC = 0.994 ± 0.009), significantly outperforming leading pathology foundation models and a hematology-specific model. In a prospective interventional crossover reader study (NCT07203885), LEAP improved the balanced accuracy of ten clinicians, each reviewing 102 slides, from 0.69 to 0.85. Moreover, a multimodal model combining LEAP-derived features with routine clinical variables stratified overall survival in all cohorts (concordance index 0.66–0.80; log-rank *P* < 10⁻⁵), and LEAP detected six clinically relevant genomic alterations within the discovery cohort using WSI only (AUROC 0.70–0.83).
-
+ 
+Acute myeloid leukemia (AML) assessment increasingly integrates morphological and molecular information, yet the capacity of artificial intelligence (AI) to extract these signals from bone marrow smears remains unclear. Rapid recognition is particularly critical for acute promyelocytic leukemia (APL), an AML subtype requiring immediate initiation of all-trans retinoic acid while molecular confirmation is pending. To address this urgent diagnostic need and advance broader AML evaluation, we developed and validated the Leukemia End-to-End Analysis Platform (LEAP), a single-cell AI framework that analyzes routine bone marrow smears from patients with newly diagnosed AML for subtyping, survival stratification, and molecular alteration prediction. Using whole-slide images (WSIs) from six institutions, LEAP achieved an AUROC of 0.994 (95% CI 0.987–0.999) for distinguishing APL from other AML subtypes, significantly outperforming all comparator pathology and hematopathology foundation models. In a prospectively registered randomized reader study (NCT07203885), LEAP assistance increased sensitivity by 29.2 percentage points (95% CI 13.5–44.9 percentage points), accuracy by 5.6 percentage points, PPV by 17.6 percentage points, and NPV by 4.0 percentage points. A multimodal model integrating LEAP-derived features with routine clinical variables predicted overall survival across all cohorts (concordance index 0.66–0.80; log-rank *P* < 0.0001), and LEAP identified six clinically relevant genomic alterations from whole-slide images alone (AUROC 0.70–0.83). These findings demonstrate that a domain-specific, single-cell AI framework can extract diagnostic, prognostic, and molecular signals from standard bone marrow smears in AML and enhance clinicians' recognition of time-critical subtypes.
+ 
 <p align="center">
   <img src="docs/fig1.png" width="900" alt="Overview of the Leukemia End-to-end Analysis Platform (LEAP) and study cohorts">
 </p>
@@ -45,8 +45,7 @@ Each archive holds one PNG per cell, at the top level or in subdirectories; only
 suffix matters and filenames are otherwise free. Names are sorted before sampling, so ordering is
 stable. Patches are resized to 96×96 and normalised with ImageNet statistics, so the crops
 themselves may be any size. Each bag draws `patches_per_slide` patches; a slide with fewer is
-zero-padded to that length, and a slide with more is subsampled — deterministically at evaluation
-time, from a seed derived from `(base_seed, Slide_ID)`, and re-drawn each epoch during training.
+zero-padded to that length, and a slide with more is subsampled deterministically and re-drawn each epoch during training.
 
 **Label file.** One spreadsheet (`.xlsx`), one row per slide:
 
@@ -93,9 +92,7 @@ silently dropping slides. Only the `folds` block is read.
 ## Usage
 
 Each task is one script and one config. The configs in `configs/` are blank templates: fill in
-the keys you need — every key carries an inline comment saying what belongs there — and a key you
-forget is reported by name rather than failing deep inside a library. Any key can be overridden on
-the command line with `--set key=value`.
+the keys you need. Any key can be overridden on the command line with `--set key=value`.
 
 ### 1. Train an Expert
 
@@ -105,13 +102,8 @@ python scripts/train_expert.py --config configs/train_expert.yaml
 
 Trains one backbone across all folds. Per fold it selects the best epoch on validation, writes
 that checkpoint to `output.checkpoint_dir` as `<experiment_id>_fold<k>.pt` — where
-`<experiment_id>` is `<experiment_name>.<extractor class>.<head class>` — chooses the
-operating threshold on validation, and applies it unchanged to the held-out fold and to every
-cohort listed in `data.external_cohorts`. Under `output.results_dir` it writes, per cohort,
-`<experiment_id>_fold_<k>.csv` with one row per slide (train and validation rows carry the label
-only; test rows carry the probability, the thresholded call and the exact patch filenames scored),
-a per-fold metrics JSON, the resolved config, and two append-only trackers,
-`metrics_per_fold.csv` and `experiment_metrics.csv`.
+`<experiment_id>` is `<experiment_name>.<extractor class>.<head class>`
+Under `output.results_dir` it writes, per cohort, `<experiment_id>_fold_<k>.csv` with one row per slide
 
 Run it once per backbone, changing `extractor._target_`, `head.in_features`,
 `head.d_model_attention` and `experiment_name`. `in_features` must equal the extractor output
@@ -123,10 +115,8 @@ dimension: 4096 for VGG19, 2048 for ResNet50, 1024 for DenseNet121.
 python scripts/ensemble.py --config configs/ensemble.yaml
 ```
 
-CPU only — it reads the Experts' prediction CSVs, not their weights. Evaluates each single Expert
-and three combiners (mean, logistic, non-negative logistic) on the discovery cohort and on each
-zero-shot cohort, and reports the one named by `headline`. The run directory is tagged with the
-`expert_gate_margin`, so runs that differ only in the gate never collide. Writes, under
+CPU only: it reads the Experts' prediction CSVs. Evaluates each single Expert on the discovery cohort and on each
+zero-shot cohort, and reports the one named by `headline`. Writes, under
 `output.results_dir/<experiment_name>/`, `combiner_comparison.csv` (every model × cohort, with
 bootstrap confidence intervals), `ensemble_recap.csv`, the reported model's per-fold predictions
 in `<cohort>/ensemble_fold_<k>.csv`, and every other model's under `by_model/`.
@@ -149,23 +139,14 @@ Loads each Expert's checkpoint, embeds every slide of every cohort, standardises
 cohort, fits one Cox-loss MLP per Expert, combines their risks in a Cox model to give the
 pathology risk score, then adds the clinical covariates in a second Cox model. Writes tables
 only, under `output.results_dir/<experiment_name>/tables/`: `patients.csv` (one row per cohort ×
-fold × slide, with every risk score and covariate), `cindex.csv`, `cox_stage2.csv`,
-`univariate.csv`, `leapsurv_emb.parquet` and `results.json`.
+fold × slide, with every risk score and covariate).
 
-The discovery cohort's test folds are disjoint, so each patient is counted once and pooled.
-External cohorts are scored by every fold model on the *same* patients, which gives one estimate
-of the model per fold but not one patient per fold: those scores are rank-normalised within each
-fold and averaged into a single score per patient before any log-rank test, so an event is never
-counted more than once.
-
-If a Cox model fails to converge, the Experts are ordering slides almost identically; set
-`cox_penalizer` to a small value such as 0.1.
 
 
 ## Data and model availability
 
 No data and no model weights are distributed with this repository. Trained checkpoints, slide and
-cell embeddings, cross-validation splits, and patient data are **not** included, and no slide or
+cell embeddings, cross-validation splits, and patient data are not included, and no slide or
 patient identifier appears anywhere in it. Those materials are available to reviewers via the
 Zenodo record [10.5281/zenodo.17728421](https://doi.org/10.5281/zenodo.17728421), or from the
 corresponding author on reasonable request.
